@@ -1,40 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "input.h"
 
 #define MAX 100
-
-//sistema pdv (ponto de venda)
-
-/* REQUISITOS DA APLICAÇÃO
-
-1- DEVE SER POSSÍVEL CADASTRAR ATÉ 100 PRODUTOS.
-2- TODO PRODUTO DEVE TER CODIGO ÚNICO (GARANTIDO PELO SW).
-3- SAÍDA DO CADASTRO DE PRODUTOS SERÁ CODIGO <= 0;
-
-FASE DE VENDAS!
-1- SOLICITAR CODIGO DE ITEM PARA VENDA:
-	1.1- VERIFICAR SE ITEM EXISTE
-		1.1.1- IMPRIMIR TODOS OS DADOS DO PRODUTO, OU
-		1.1.2- CODIGO NÃO EXISTENTE! TENTAR NOVAMENTE.
-
-	1.2. SOLICITAR QUANTIDADE DESTE MESMO ITEM NO CARRINHO
-		1.2.1- VERIFICAR SE A QTDE. ESTÁ DISPONÍVEL
-		1.2.2- ATUALIZAR ESTOQUE DO ITEM
-		
-2. REPETIR TODO PROCESSO DE VENDA DO CARRINHO ATÉ CÓDIGO <=0
-
-3. INFORMAR TOTAL DA VENDA
-4. INFORMAR VALOR PAGO
-5. INFORMAR TROCO DA VENDA
-
-6. PERGUNTAR SE HÁ NOVO CARRINHO DE COMPRAS
-	6.1. REPETIR TODO PROCESSO PARA NOVO CARRINHO.
-
-7. NÃO HAVENDO...
-	7.1 RELATÓRIO ATUALIZADO DE TODOS OS PRODUTOS
-	7.2 FATURAMENTO DO DIA (TOTAL DE VENDAS)
-*/
 
 typedef struct{
 	int codigo;//chave
@@ -43,12 +12,35 @@ typedef struct{
 	int estoque;
 }Produto;
 
+int cadrastarProduto(Produto *p){
+	printf("\n========================================CADRASTO========================================\n");
+	input(INT, "Qual codigo do produto: ", &p->codigo);
+	
+	if(p->codigo == 0) return p->codigo;
+		
+	input(FLOAT, "Digite o valor do produto: ", &p->valor);
+	input(STR, "Digite a descrição do produto: ", p->descricao);
+	input(INT, "Digite quantas unidades você vai querer cadrastar: ", &p->estoque);
+	return p->codigo;
+}
+
+
+
+Produto* validacao(int codigo, Produto cadrastro[], int* cont) {
+	//verificar se o produto existe
+	int flag = 0;
+	for(int i = 0; i < cont; i++){
+		if(codigo == cadrastro[i].codigo) { 
+			return cadrastro[i];
+		}
+	}
+	return NULL;
+}
 
 int main(){
 	
 	Produto p;
 	Produto cadrasto[MAX];
-	
 
 	int cont = 0;
 	int qtd;
@@ -57,26 +49,12 @@ int main(){
 	
 	
 	while(cont < MAX) {
-		//cadrastar produto
-		printf("\n========================================CADRASTO========================================\n");
-		printf("\nDigite o codigo do produto (0-ENCERRAR): ");
-		scanf("%d", &p.codigo);
 		
-		//encerrar o loop
-		if(p.codigo <= 0) {
-			printf("\nCADRASTO ENCERRADO\n");
+		cadrastarProduto(&p);
+		
+		if(p.codigo == 0)
 			break;
-		}
-		
-		printf("Qual produto vc vai querer? ");
-		scanf(" %[^\n]s ", p.descricao);
-		
-		printf("Digite o valor do produto: ");
-		scanf("%f", &p.valor);
-	
-		printf("Digite quantas unidades você vai querer cadrastar: ");
-		scanf("%d", &p.estoque);
-		
+
 		int repetido = 0;
 		//verificar se o numero esta se repetindo
 		for(int i = 0; i < cont; i++) {
@@ -86,14 +64,9 @@ int main(){
 			}
 		}
 		
-		if(repetido) { 
-			system("clear");
-			printf("\nProduto ja cadastrado! Tente novamente...\n");
-		}
-		
-		else { 
-			cadrasto[cont++] = p;
-		}
+		if(repetido) printf("\nProduto ja cadastrado! Tente novamente...\n");
+		else cadrasto[cont++] = p;
+		system("clear");
 	}
 	int idx = -1;
 	
@@ -109,19 +82,10 @@ int main(){
 			break;
 		}
 		
+		int flag = validacao(p.codigo, cadrasto, idx);
 		printf("\n");
 		
-		//verificar se o produto existe
-		int existe = 0;
-		for(int i = 0; i < cont; i++ ){
-			if(p.codigo == cadrasto[i].codigo) { 
-				existe = 1;
-				idx = i;
-				break;
-			}
-		}
-		
-		if(!existe) {
+		if(!flag) {
 			printf("\nCodigo não existente! Tente novamente \n");
 			continue;
 		}
@@ -187,7 +151,7 @@ int main(){
 	}
 	
 	//RELATORIO FINAL
-	printf("\n=========================================RELATORIO FINAL=========================================\n");
+	printf("\n=====================================RELATORIO FINAL====================================\n");
 	for(int i = 0; i < cont; i++) {
 		printf("\nPRODUTO %d\n", i+1);
 		printf("Codigo do produto %d\n", cadrasto[i].codigo);
